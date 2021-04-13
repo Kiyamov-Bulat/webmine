@@ -1,0 +1,10 @@
+1. downloadable-link +
+2. sqlite3 support +
+	a) add 2 man +
+3. main frontend interface 
+4. main css-stylesheet
+5. state of server && state of mods
+6. reload server button
+7. svg-icon of state
+8. css
+9. other

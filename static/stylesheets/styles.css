@@ -1,0 +1,120 @@
+* { margin:0;}
+
+html, body, #root{
+	min-height: 100%;
+	width: 100%;
+}
+
+body {
+	background: white url("../images/login_bg.jpg") no-repeat;
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+}
+
+ul {
+	list-style: none;
+	padding: 0px;
+}
+
+a, a:link, a:visited, a:hover, a:active {
+	color: black;
+	text-decoration: none;
+}
+
+#root div {
+	text-align: center;
+	height: 70%;
+	padding-top: 10%;
+}
+
+.login-form {
+	width: 30%;
+	min-width: 220px;
+	margin: auto;
+    -webkit-box-shadow: 0px 0px 10px 1px gray;
+			box-shadow: 0px 0px 10px 1px gray;
+}
+
+.login-form fieldset {
+	text-align: center;
+	border: 1px solid gray;
+	padding: 50px 0;
+}
+
+.login-form label {
+	display: block;
+	font: 1.6em sans-serif;
+}
+
+.login-form input[name="email"], input[name="password"] {
+	display: block;
+	margin: auto;
+	margin-top: 35px;
+	margin-bottom: 35px;
+	font-size: 0.55em;
+}
+
+.login-form input[type="submit"] {
+    background:rgb(42, 72, 129); 
+    border:0 none;
+    cursor:pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	padding: 10px;
+	opacity: 80%;
+	color: white;
+}
+
+.mod-list {
+	position: absolute;
+	-webkit-box-shadow: 0px 0px 5px 1px gray;
+	box-shadow: 0px 0px 5px 1px gray;
+	height: calc(100% - 160px) !important;
+	padding-top: 0px !important;
+	width: 40%;
+	margin-top: 80px;
+	margin-bottom: 80px;
+	margin-left: 50px;
+	overflow-y: scroll;
+    scrollbar-width: none;
+
+}
+
+/* width */
+::-webkit-scrollbar {
+	width: 3px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+	background: #f1f1f1;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+	background: #888;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+	background: #555;
+  }
+
+.mod {
+	display: block;
+	background-color: white;
+    /* RGBa with 0.6 opacity */
+    background-color: rgba(255, 255, 255, 0.8);
+	font-size: 1.2em;
+	text-align: start;
+	padding: 15px;
+	border: 1px solid gray;
+	border-bottom: none;
+	text-overflow: ellipsis;
+	overflow: hidden
+}
+
+.mod:last-of-type {
+	border-bottom: 1px solid gray;
+}
