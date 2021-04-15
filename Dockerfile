@@ -1,6 +1,12 @@
 FROM alpine:latest
 
-RUN apk add --no-cache go
+EXPOSE 80
+
+RUN apk add --update --no-cache go
+RUN apk add gcc musl-dev
+RUN apk add nodejs npm
+RUN apk add docker openrc
+RUN rc-update add docker boot
 
 # Configure Go
 ENV GOROOT /usr/lib/go
@@ -9,17 +15,15 @@ ENV PATH /go/bin:$PATH
 
 RUN mkdir -p ${GOPATH}/src ${GOPATH}/bin
 
-# Install Glide
-#RUN go get -u github.com/Masterminds/glide/...
+WORKDIR $GOPATH/src/webmine
+COPY . .
 
-EXPOSE 8080
-
-RUN mkdir $GOPATH/src/webmine
+WORKDIR $GOPATH/src/webmine/frontend
+RUN npm install 
+RUN npm build .
 
 WORKDIR $GOPATH/src/webmine
-
-COPY webmine.go .
-COPY go.mod .
+RUN go mod tidy
 RUN go build .
 
 CMD ["./webmine"]

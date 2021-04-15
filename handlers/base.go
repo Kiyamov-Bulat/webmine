@@ -19,7 +19,9 @@ func getCurrentUser(r *http.Request) *models.User {
 	if userID == 0 {
 		return &models.User{}
 	}
-	return models.GetUser(userID)
+	user := models.GetUser(userID)
+	user.Password = ""
+	return user
 }
 
 func getCurrentUserID(r *http.Request) uint {

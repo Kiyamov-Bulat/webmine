@@ -9,7 +9,7 @@ type MineModel struct {
 }
 
 func (model *MineModel) IsValid() bool {
-	return model.ID != 0
+	return model != nil && model.ID != 0
 }
 
 func setItemFromDB(tableName string, item Validator, id uint) {

@@ -1,0 +1,25 @@
+docker images (-q (:вывести только id))			 													
+	- просмотр образов
+docker ps (-a (:все контейнеры)) (-q (:вывести только id))
+	- просмотр контейнеров
+docker build [-t <build_name>] [<directory>]
+	- создание образа
+docker run [<image_name>] (--name <container_name>) (-d (:работать фоном))
+(--rm (:удалится после работы))
+(-p <machine_port>:<container_port> (:устанавливает порты))
+(-e <env_var>=<env_value> (:задание переменной окружения))
+(-v <abs_machine_path>/<volume_name>:<abs_container_path> (:монтирование папки))
+(<image_name>)
+	- запуск контейнера
+docker rm [<ids> / <container_name>] ($(docker ps -qa))
+	- удаление контейнеров
+docker rmi [<image_name> / <image_id>]
+	- удаление образов
+docker stop [<container_name> / <container_id>]
+	- остановка работы контейнера
+docker volume ls
+	- просмотр прикрепленных папок
+docker volume create
+	- создание volum'а (папки)
+
+[FROM, WORKDIR, COPY, RUN, EXPOSE, CMD, ENV]

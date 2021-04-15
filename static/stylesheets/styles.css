@@ -20,12 +20,33 @@ ul {
 a, a:link, a:visited, a:hover, a:active {
 	color: black;
 	text-decoration: none;
+	cursor: pointer;
 }
 
-#root div {
+#root  {
 	text-align: center;
-	height: 70%;
-	padding-top: 10%;
+	margin-top: 80px;
+}
+
+
+/* width */
+::-webkit-scrollbar {
+	width: 3px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+background: #555;
 }
 
 .login-form {
@@ -71,50 +92,86 @@ a, a:link, a:visited, a:hover, a:active {
 	-webkit-box-shadow: 0px 0px 5px 1px gray;
 	box-shadow: 0px 0px 5px 1px gray;
 	height: calc(100% - 160px) !important;
-	padding-top: 0px !important;
-	width: 40%;
-	margin-top: 80px;
+	width: calc(40% - 50px);
 	margin-bottom: 80px;
 	margin-left: 50px;
 	overflow-y: scroll;
     scrollbar-width: none;
-
+	background-color: white;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 
-/* width */
-::-webkit-scrollbar {
-	width: 3px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-	background: #f1f1f1;
-  }
-  
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-	background: #888;
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-	background: #555;
-  }
-
 .mod {
-	display: block;
-	background-color: white;
+	position: relative;
     /* RGBa with 0.6 opacity */
-    background-color: rgba(255, 255, 255, 0.8);
 	font-size: 1.2em;
 	text-align: start;
-	padding: 15px;
-	border: 1px solid gray;
+	border: 1px solid lightgray;
 	border-bottom: none;
+}
+
+.mod .download-link {
+	display: block;
+	padding: 15px;
 	text-overflow: ellipsis;
-	overflow: hidden
+	overflow: hidden;
+	white-space: nowrap;
 }
 
 .mod:last-of-type {
-	border-bottom: 1px solid gray;
+	border-bottom: 1px solid lightgray;
+}
+
+.mod .delete-btn {
+	position: absolute;
+	right: 1%;
+	top: 8%;
+	background: red;
+    border:0 none;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	opacity: 35%;
+	padding: 5px;
+	color: white;
+	font-size: 0.45em;
+	width: 2.2em;
+}
+
+.mod .delete-btn:hover {
+	opacity: 80%;
+}
+
+.mod .jar-icon {
+	width: 2.5em;
+	height: 2.6em;
+	float: left;
+}
+
+.control-panel {
+	position: absolute;
+	right: 0%;
+	margin-right: 50px;
+}
+
+.control-panel .btn {
+	background:rgb(12, 77, 197); 
+    border:0 none;
+    cursor:pointer;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+	padding: 10px;
+	opacity: 80%;
+	color: white;
+	font-size: 0.8em;
+	margin-right: 15px;
+}
+
+.control-panel .btn.disabled {
+	background: gray;
+	opacity: 50%;
+	cursor: default;
+}
+
+.control-panel input[type="file"] {
+    display: none;
 }

@@ -71,9 +71,12 @@ func getToken(tokenHeader string) (*models.Token, error) {
 
 func isAllowedReq(reqMethod string, reqPath string) bool {
 	static := []string{"/static", "/data", "/frontend"}
-	allowedPaths := []string{"/"}
+	// allowedPaths := []string{"/"}
 	if reqMethod == "GET" {
-		for _, val := range append(static, allowedPaths...) {
+		if reqPath == "/" {
+			return true
+		}
+		for _, val := range static {
 			if strings.HasPrefix(reqPath, val) {
 				return true
 			}

@@ -3,11 +3,14 @@ package models
 import (
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 	"time"
 )
 
-const MOD_DIR_PATH = "./mods"
+const MOD_DIR_PATH = "./data/mods"
+const MOD_ZIP_NAME = "mods.zip"
+const MOD_ZIP_PATH = "./tmp/" + MOD_ZIP_NAME
 
 type Mod struct {
 	MineModel   `gorm:"embedded"`
@@ -22,11 +25,7 @@ func GetMod(id uint) *Mod {
 	mod := &Mod{}
 	//setItemFromDB("mods", mod, mod.ID)
 	GetDB().Where("id = ?", id).First(mod)
-	file, err := ioutil.ReadFile(path.Join(MOD_DIR_PATH, mod.Name))
-	if err != nil {
-		return mod
-	}
-	mod.Content = file
+	mod.SetContent()
 	return mod
 }
 
@@ -40,34 +39,34 @@ func GetAllMods() []Mod {
 }
 
 func (mod *Mod) SaveFile() {
-	ioutil.WriteFile(path.Join(MOD_DIR_PATH, mod.Name), mod.Content, 0644)
+	ioutil.WriteFile(mod.GetFullFilePath(), mod.Content, 0644)
 }
 
 func (mod *Mod) Create() {
 	GetDB().Create(mod)
 }
 
+func (mod *Mod) Delete() {
+	os.Remove(mod.GetFullFilePath())
+	GetDB().Delete(mod)
+}
+
+func (mod *Mod) SetContent() {
+	file, err := ioutil.ReadFile(mod.GetFullFilePath())
+	if err != nil {
+		log.Println("File read error!")
+	}
+	mod.Content = file
+}
+
+func (mod *Mod) GetFullFilePath() string {
+	return path.Join(MOD_DIR_PATH, mod.Name)
+}
+
 func GetAllModNames() []Mod {
 	mods := []Mod{}
 	getAllItems("mods", &mods)
 	return mods
-}
-
-func (mod *Mod) SetContent() {
-	files, err := ioutil.ReadDir(MOD_DIR_PATH)
-	if err != nil {
-		log.Println("The setting of mod content error!")
-	}
-	for _, file := range files {
-		if mod.Name == file.Name() && mod.ModTime == file.ModTime() && mod.Size == file.Size() {
-			tmp, err := ioutil.ReadFile(mod.Name)
-			if err != nil {
-				log.Println("File read error!")
-			}
-			mod.Content = tmp
-			return
-		}
-	}
 }
 
 func initModes() {
