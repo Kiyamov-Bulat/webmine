@@ -4,5 +4,7 @@ node_modules
 docker_help.txt
 *.exe
 *.out
-webmibe.db
+webmine.db
 tasks.txt
+production.env
+data/mods/*
