@@ -1,10 +1,12 @@
 version: "3.9"
 services: 
-	webmine:
-		build: .
-		ports: 
-			- "80:80"
-		volumes:
-			- /var/run/docker.sock:/var/run/docker.sock:rw
-			- ~/data:/go/src/webmine/data
-		restart: always
+    webmine:
+        build: .
+        ports: 
+            - "80:80"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:rw
+            - /home/gink_official01/data:/go/src/webmine/data
+        restart: always
+        env_file:
+            - production.env

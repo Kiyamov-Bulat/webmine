@@ -1,8 +1,7 @@
 package models
 
 import (
-	"log"
-	"path/filepath"
+	"os"
 	"time"
 	u "webmine/utils"
 )
@@ -11,7 +10,6 @@ const (
 	SERVER_DATA_DIR_PATH = "./data"
 	SERVER_DATA_ZIP_NAME = "server_data.zip"
 	SERVER_DATA_ZIP_PATH = "./tmp/" + SERVER_DATA_ZIP_NAME
-	SERVER_IMG_NAME      = "itzg/minecraft-server:java8"
 
 	CMD_DOCKER = "docker"
 
@@ -20,11 +18,13 @@ const (
 	STATE_WARNING    = "Not running and restarting"
 )
 
-// var (
-// 	CMD_SERVER_UPTIME = [...]string{"inspect", "-f", "'{{ .Created }}'"}
-// 	CMD_SERVER_STATE  = "docker container inspect -f '{{.State.%s}}'"
-// 	CMD_SERVER_RELOAD = "docker restart"
-// )
+var (
+	SERVER_IMG_NAME = "itzg/minecraft-server:java8"
+
+	// 	CMD_SERVER_UPTIME = [...]string{"inspect", "-f", "{{.State.StartedAt}}"}
+	// 	CMD_SERVER_STATE  = [...]string{"container", "inspect", "-f", "{{.State.%s}}"}
+	// 	CMD_SERVER_RELOAD = [...]string{"restart"}
+)
 
 type Server struct {
 	ID     string    `json:"-"`
@@ -34,16 +34,25 @@ type Server struct {
 
 var server Server
 
+func init() {
+	server.ID = os.Getenv("CONTAINER_ID")
+
+	if tmp := os.Getenv("SERVER_IMG_NAME"); tmp != "" {
+		SERVER_IMG_NAME = tmp
+	} else if tmp = u.DefaultEnv["SERVER_IMG_NAME"]; tmp != "" {
+		SERVER_IMG_NAME = tmp
+	}
+}
+
 func GetServer() *Server {
 	return &server
 }
 
+// Perhaps you should make a backup before reload
+// err := u.RecursiveZip(SERVER_DATA_DIR_PATH, ...)
+
 func (server *Server) Reload() error {
-	err := u.RecursiveZip(SERVER_DATA_DIR_PATH, filepath.Join(SERVER_DATA_DIR_PATH, SERVER_DATA_ZIP_NAME))
-	if err != nil {
-		log.Println(err.Error())
-	}
-	_, err = u.GetResultOfExecCmd(CMD_DOCKER, "restart", server.ID)
+	_, err := u.GetResultOfExecCmd(CMD_DOCKER, "restart", server.ID)
 	if err != nil {
 		return err
 	}
@@ -53,7 +62,7 @@ func (server *Server) Reload() error {
 }
 
 func (server *Server) UpdateUptime() error {
-	res, err := u.GetResultOfExecCmd(CMD_DOCKER, "inspect", "-f", "{{ .Created }}", server.ID)
+	res, err := u.GetResultOfExecCmd(CMD_DOCKER, "inspect", "-f", "{{.State.StartedAt}}", server.ID)
 	if err != nil {
 		return err
 	}
@@ -63,19 +72,19 @@ func (server *Server) UpdateUptime() error {
 }
 
 func (server *Server) UpdateState() error {
-	res, err := u.GetResultOfExecCmd(CMD_DOCKER, "container", "inspect", "-f", "{{.State.Running}}", server.ID)
+	res, err := u.GetResultOfExecCmd(CMD_DOCKER, "container", "inspect", "-f", "{{.State.Health.Status}}", server.ID)
 	if err != nil {
 		return err
 	}
-	if res == "true" {
-		server.State = STATE_RUNNING
+	if res == "starting" {
+		server.State = STATE_RESTARTING
 	} else {
-		res, err = u.GetResultOfExecCmd(CMD_DOCKER, "container", "inspect", "-f", "{{.State.Restarting}}", server.ID)
+		res, err = u.GetResultOfExecCmd(CMD_DOCKER, "container", "inspect", "-f", "{{.State.Health.Status}}", server.ID)
 		if err != nil {
 			return err
 		}
-		if res == "true" {
-			server.State = STATE_RESTARTING
+		if res == "healthy" {
+			server.State = STATE_RUNNING
 		} else {
 			server.State = STATE_WARNING
 		}
@@ -84,7 +93,12 @@ func (server *Server) UpdateState() error {
 }
 
 func (server *Server) UpdateId() error {
-	res, err := u.GetResultOfExecCmd(CMD_DOCKER, "ps", "-aqf", "ancestor="+SERVER_IMG_NAME)
-	server.ID = res
-	return err
+	id := os.Getenv("CONTAINER_ID")
+	if id == "" {
+		res, err := u.GetResultOfExecCmd(CMD_DOCKER, "ps", "-aqf", "ancestor="+SERVER_IMG_NAME)
+		server.ID = res
+		return err
+	}
+	server.ID = id
+	return nil
 }

@@ -1,8 +1,8 @@
 import React from "react"
 import { getUserFromCookie } from "./user"
 
-
 export const IMAGE_STORAGE = "./static/images/"
+export const ToLoadContext = React.createContext({})
 
 export function ContentHandler(props) {
     const [isLoaded, error] = props.contentState
@@ -21,27 +21,20 @@ export function ControlBtn(props) {
     const {path, Element, className, children, ...attr} = props
     let btnClassName = className ? className + " btn" : "btn"
     
-    if (!isLoaded)
+    if (!isLoaded && !error)
         btnClassName += btnClassName ? " " + "disabled" : "disabled"
     function fetchData(options) {
-        const {method, headers, ...restOptions} = options || {}
         if (isLoaded)
         {
             setIsLoaded(false)
-            return fetch(path, {
-                method: method || "GET",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Session-Token': 'Bearer ' + getUserFromCookie().token,
-                    ...headers,
-                },
-                ...restOptions,
-            })
+            return fetchDataWithToken(path, options)
         }
-        return new Promise((resolve, reject) => reject('Wait another action!'))
+        return new Promise((_, reject) => reject('Wait another action!'))
     }
-    function onLoadEnd() {
+    function onLoadEnd(response) {
         setIsLoaded(true)
+        if (typeof props.onLoadEnd == "function")
+            props.onLoadEnd(response)
     }
     function onError(loadErr) {
         setError(loadErr)
@@ -56,24 +49,60 @@ export function ControlBtn(props) {
 
 export function DownloadableLink(props) {
     const {fileName, fetchData, onLoadEnd, onError, children, ...attr} = props
-	function downloadFile(event) {
+    const {handleLoad} = React.useContext(ToLoadContext)
+	
+    function downloadFile(event) {
 		event.preventDefault()
-		fetchData().then((response) => response.blob()
+		fetchData().then(response => typeof handleLoad == 'function' ? handleLoad(response) : response.blob()
         ).then((blob) => {
-			const url = window.URL.createObjectURL(
-				new Blob([blob]),
-			)
-			const link = document.createElement('a')
-			link.href = url
-			link.setAttribute('download', fileName)
-			document.body.appendChild(link)
-			link.click()
-			link.parentNode.removeChild(link)
-            onLoadEnd()
+            setTimeout(() => {
+                const url = window.URL.createObjectURL(
+                    new Blob([blob]),
+                )
+                const link = document.createElement('a')
+                link.href = url
+                link.setAttribute('download', fileName)
+                document.body.appendChild(link)
+                link.click()
+                link.parentNode.removeChild(link)
+                onLoadEnd()
+            }, 200)
 		}, reason => onError(reason))
 	}
 	return (
 		<a {...attr} onClick={downloadFile}>{children}</a>
+    )
+}
+
+export function fetchDataWithToken(path, options) {
+    const {method, headers, ...restOptions} = options || {}
+    const fullHeaders = {
+        'Content-Type': 'application/json',
+        'X-Session-Token': 'Bearer ' + getUserFromCookie().token,
+        ...headers,
+    }
+
+    if (fullHeaders['Content-Type'] === undefined)
+        delete fullHeaders['Content-Type']
+    return fetch(path, {
+        method: method || "GET",
+        headers: fullHeaders,
+        ...restOptions,
+    })
+}
+
+export function ProgressBar(props) {
+    const {size, progress} = props
+    const pbar  = React.useRef()
+    
+    React.useEffect(() => {
+        pbar.current.style.paddingRight = progress / size * 100 + "%"
+    }, [progress])
+    return (
+        <div id={props.id} className="progress-bar">
+            <p>{progress} / {size} B</p>
+            <div ref={pbar}/>
+        </div>
     )
 }
 
@@ -82,22 +111,13 @@ export function DownloadableLink(props) {
 //////////////////////
 
 export function useResponse(path, options) {
-    const [content, setContent] = React.useState("")
+    const [content, setContent] = React.useState({})
     const [isLoaded, setIsLoaded] =  React.useState(false)
     const [error, setError] = React.useState(null)
-    const {method, headers, ...restOptions} = options || {}
+    const method = options && options.method
 
     React.useEffect(() => {
-        const pathName = path
-        fetch(pathName, {
-            method: method || "GET",
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Session-Token': 'Bearer ' + getUserFromCookie().token,
-                // ...headers,
-            },
-            ...restOptions,
-        }
+        fetchDataWithToken(path, options
         ).then(res => res.json()
         ).then(
             response => {
@@ -171,7 +191,6 @@ export function ManagedForm(props) {
     )
 }
 
-
 export function ManagedFieldSet(props) {
     const {children, fieldsState, ...rest} = props
     const modChildren = React.Children.map(children, child => {
@@ -200,3 +219,19 @@ export function usePreloadImages(objects) {
         preloadedImages.current.push(pImage)
     }), [])
 }
+
+export function recursiveMap(children, fn) {
+    return React.Children.map(children, child => {
+      if (!React.isValidElement(child)) {
+        return child;
+      }
+  
+      if (child.props.children) {
+        child = React.cloneElement(child, {
+          children: recursiveMap(child.props.children, fn)
+        });
+      }
+  
+      return fn(child);
+    });
+  }

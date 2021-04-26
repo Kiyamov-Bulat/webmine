@@ -7,6 +7,7 @@ import (
 
 	mwr "webmine/auth"
 	h "webmine/handlers"
+	u "webmine/utils"
 
 	"github.com/gorilla/mux"
 )
@@ -17,7 +18,7 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	r.HandleFunc("/api/login", h.Authenticate).Methods("POST")
 	r.HandleFunc("/api/server", h.GetServerInfo).Methods("GET")
-	r.HandleFunc("/api/server/reload", h.ReloadServer).Methods("POST")
+	r.HandleFunc("/api/server/reload", h.ReloadServer).Methods("GET")
 	r.HandleFunc("/api/mods/{modID:[0-9]+}", h.DownLoadMod).Methods("GET")
 	r.HandleFunc("/api/mods/{modID:[0-9]+}", h.DeleteMod).Methods("POST")
 	r.HandleFunc("/api/archive/mods", h.GetModsArchive).Methods("GET")
@@ -27,6 +28,9 @@ func main() {
 	r.HandleFunc("/", h.IndexHandler).Methods("GET")
 	r.Use(mwr.JwtAuth)
 	port := ":" + os.Getenv("PORT")
+	if port == ":" {
+		port += u.DefaultEnv["PORT"]
+	}
 	log.Println(port)
 	log.Fatal(http.ListenAndServe(port, r))
 }

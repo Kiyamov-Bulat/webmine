@@ -2,11 +2,9 @@ FROM alpine:latest
 
 EXPOSE 80
 
-RUN apk add --update --no-cache go
-RUN apk add gcc musl-dev
-RUN apk add nodejs npm
-RUN apk add docker openrc
-RUN rc-update add docker boot
+RUN apk add --update --no-cache go \
+		&& apk add gcc musl-dev nodejs npm docker openrc \
+			&& rc-update add docker boot
 
 # Configure Go
 ENV GOROOT /usr/lib/go
@@ -19,11 +17,9 @@ WORKDIR $GOPATH/src/webmine
 COPY . .
 
 WORKDIR $GOPATH/src/webmine/frontend
-RUN npm install 
-RUN npm build .
+RUN npm ci --only=production && npm run-script build
 
 WORKDIR $GOPATH/src/webmine
-RUN go mod tidy
-RUN go build .
+RUN go mod tidy && go build .
 
 CMD ["./webmine"]

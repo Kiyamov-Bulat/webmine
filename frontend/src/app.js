@@ -4,18 +4,18 @@ import {User, saveUserInCookie, getUserFromCookie} from "./user"
 import { LoginForm } from "./base";
 import Home from "./home";
 
-// const UserContext = React.createContext(null);
-
 function App(props) {
     const [user, setUser] = React.useState(getUserFromCookie())
-    React.useEffect(() => {
-        user.isLogged() && saveUserInCookie(user)
-    }, [user])
-    const handleUserSet = React.useCallback((loggedUser) => {setUser(new User(loggedUser))}, [])
+    const handleUserSet = (loggedUser) => {
+        let newUser = new User(loggedUser)
+        saveUserInCookie(newUser)
+        setUser(newUser)
+    }
+
     if (user.isLogged())
         return (<Home user={user}/>)
     else
-        return (<div><LoginForm setUser={handleUserSet} /></div>)
+        return (<LoginForm setUser={handleUserSet} />)
 }
 
 ReactDOM.render(

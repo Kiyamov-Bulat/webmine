@@ -1,9 +1,13 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"strings"
+
+	u "webmine/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
@@ -17,7 +21,7 @@ type Token struct {
 
 type User struct {
 	MineModel `gorm:"embedded"`
-	Email     string `json:"email"`
+	Email     string `json:"email" gorm:"unique_index"`
 	Password  string `json:"password"`
 	Name      string `json:"name"`
 	Token     string `json:"token" sql:"-"`
@@ -38,35 +42,21 @@ func (user *User) Login() error {
 	err := GetDB().Table("users").Where("email = ?", user.Email).First(user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return errors.New("Email address not found")
+			return errors.New("email address not found")
 		}
-		return errors.New("Connection error. Please retry")
+		return errors.New("connection error. please retry")
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(inputedPassword))
-	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword { //Пароль не совпадает!!
-		return errors.New("Invalid login credentials. Please try again")
+	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
+		return errors.New("invalid login credentials. please try again")
 	}
 	user.Password = ""
 	tk := &Token{UserId: user.ID}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(os.Getenv("AUTH_TOKEN")))
+	tokenString, _ := token.SignedString([]byte(u.DefaultEnv["AUTH_TOKEN"]))
 	user.Token = tokenString
 	return nil
 }
-
-/*
-func (user *User) Login() error {
-	if user.Email != "art@gmail.com" && user.Email != "bul@gmail.com" {
-		return errors.New("Email is not vald")
-	}
-	if user.Password != "ART_PASS" && user.Password != "BUL_PASS" {
-		return errors.New("Password is not vald")
-	}
-	user.Token = "aGVsbG8gd29ybGQgMTIzIQo="
-	user.ID = 1
-	return nil
-}
-*/
 
 func (user *User) Create() {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
@@ -76,9 +66,15 @@ func (user *User) Create() {
 	user.Password = string(hashedPassword)
 	GetDB().Create(user)
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), &Token{UserId: user.ID})
-	tokenString, _ := token.SignedString([]byte(os.Getenv("AUTH_TOKEN")))
+	tokenString, _ := token.SignedString([]byte(u.DefaultEnv["AUTH_TOKEN"]))
 	user.Token = tokenString
 	user.Password = ""
+}
+
+func (user *User) Exist() bool {
+	tmp := &User{}
+	GetDB().Table("users").Where("email = ?", user.Email).First(tmp)
+	return tmp.IsValid()
 }
 
 func GetUser(id uint) *User {
@@ -95,17 +91,47 @@ func isValidEmail(email string) bool {
 }
 
 func initUsers() {
-	var users [2]User
-
-	users[0].Email = os.Getenv("BUL_EMAIL")
-	users[1].Email = os.Getenv("ART_EMAIL")
-	users[0].Password = os.Getenv("BUL_PASS")
-	users[1].Password = os.Getenv("ART_PASS")
-	users[0].Name = "Bulat"
-	users[1].Name = "Artur"
-	users[0].ID = 1
-	users[1].ID = 2
-	for _, user := range users {
-		user.Create()
+	usersJson := os.Getenv("USERS")
+	if usersJson == "" {
+		user := User{
+			Name:      u.DefaultEnv["USER_NAME"],
+			Password:  u.DefaultEnv["USER_PASSWORD"],
+			Email:     u.DefaultEnv["USER_EMAIL"],
+			MineModel: MineModel{ID: 1},
+		}
+		if !user.Exist() {
+			log.Println("here")
+			user.Create()
+		}
+	} else {
+		jsonBlob := []byte(usersJson)
+		if json.Valid(jsonBlob) {
+			users, err := parseUsersEnv(jsonBlob)
+			if err != nil {
+				log.Println("init users:", err)
+				return
+			}
+			for _, user := range users {
+				if !user.Exist() {
+					user.Create()
+				}
+			}
+		} else {
+			log.Println("error: json: users env is not valid!")
+		}
 	}
+}
+
+func parseUsersEnv(jsonBlob []byte) ([]User, error) {
+	var users []User
+	err := json.Unmarshal(jsonBlob, &users)
+	if err != nil {
+		var user User
+		err = json.Unmarshal(jsonBlob, &user)
+		if err != nil {
+			return nil, err
+		}
+		return []User{user}, err
+	}
+	return users, err
 }

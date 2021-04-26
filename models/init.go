@@ -1,26 +1,18 @@
 package models
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/joho/godotenv"
 )
 
-var db *gorm.DB //база данных
+var db *gorm.DB
 
 func init() {
-
-	e := godotenv.Load() //Загрузить файл .env
-	if e != nil {
-		fmt.Print(e)
-	}
-
 	conn, err := gorm.Open("sqlite3", "webmine.db")
 	if err != nil {
-		log.Println("It's error", err)
+		log.Println("It's open db error:", err)
 	}
 
 	db = conn

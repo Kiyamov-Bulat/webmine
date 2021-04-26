@@ -1,14 +1,84 @@
 import React from "react"
-import { DownloadableLink , ControlBtn} from "./base"
+import { DownloadableLink , ControlBtn, fetchDataWithToken, ProgressBar, recursiveMap, ToLoadContext} from "./base"
 import { ModList } from "./mod"
-import { getUserFromCookie } from "./user"
-
 
 export default function Home(props) {
+    const [content, setContent] = React.useState({})
+    const [isLoaded, setIsLoaded] =  React.useState(true)
+    const [error, setError] = React.useState(null)
+    const uptime = content.model && content.model.uptime && new Date(content.model.uptime) || new Date()
+
+    React.useEffect(() => {
+        fetchDataWithToken("/api/server"
+        ).then(res => res.json()
+        ).then(
+            response => {
+                setContent(response)
+                setIsLoaded(true)
+            },
+            reason => setError(reason))
+    }, [props.user])
+
     return (
-        <div>
-            <ModList/>
-            <ControlPanel/>
+        <div id="home">
+            <LoadHandler>
+                <ModList serverUptime={uptime} />
+                <ControlPanel server={content.model || {}} updateServer={setContent}/>
+            </LoadHandler>
+        </div>
+    )
+}
+
+function LoadHandler(props) {
+    const [toLoad, setToLoad] = React.useState({})
+
+    function handleLoad(response) {
+        const contentLength = +response.headers.get('Content-Length')
+        const reader = response.body.getReader()
+        let receivedLength = 0
+        let chunks = []
+        let id = Date.now().toString()
+        let loader = reader.read().then(function rdChunk({done, value}) {
+            if (done) return
+            chunks.push(value)
+            receivedLength += value.length
+            setToLoad({"id": id, "item": <ProgressBar id={id} size={contentLength} progress={receivedLength} key={id}/>})
+            return reader.read().then(rdChunk)
+        })
+        setTimeout(() => setToLoad({"id": id, "item": null}), 2000)
+        return loader.then(() => {
+            return new Promise((resolve, reject) => { 
+                if (receivedLength > 0)
+                    resolve(new Blob(chunks))
+                else 
+                    reject('failed to fetch data!')
+            })
+        })
+    }
+    return (
+        <ToLoadContext.Provider value={{toLoad, handleLoad}}>
+            {props.children}
+        </ToLoadContext.Provider>
+    )
+}
+
+function StatusPanel(props) {
+    const [bars, setBars] = React.useState({})
+    const {toLoad} = React.useContext(ToLoadContext)
+
+    React.useEffect(() => {
+        if (toLoad.item == null) {
+            let tmp = {...bars}
+            delete tmp[toLoad.id]
+            setBars(tmp);
+        } else
+            setBars({...bars, ...{[toLoad.id]: toLoad.item}})
+    }, [toLoad])
+    return (
+        <div className="status-panel-wrap">
+            <div className="status-panel">
+                {Object.values(bars || {})}
+            </div>
         </div>
     )
 }
@@ -19,7 +89,46 @@ function ControlPanel(props) {
             <ControlBtn Element={FileUploadBtn} path="/api/mods" name="file">MOD_UPLOAD</ControlBtn>
             <ControlBtn Element={DownloadableLink} path="/api/archive/mods" fileName="mods.zip" >MODS_ARCHIVE</ControlBtn>
             <ControlBtn Element={DownloadableLink} path="/api/archive/data" fileName="server_data.zip">DATA_ARCHIVE</ControlBtn>
-            <ControlBtn Element={ReloadServerBtn} path="/api/server/reload">RELOAD_SERVER</ControlBtn>
+            <ControlBtn Element={ReloadServerBtn} path="/api/server/reload" onLoadEnd={props.updateServer} >RELOAD_SERVER</ControlBtn>
+            <Board server={props.server}>
+                <StatusPanel/>
+            </Board>
+        </div>
+    )
+}
+
+const STATE_RUNNING = "Running"
+const STATE_RESTARTING = "Restarting"
+
+function Board(props) {
+    const server = props.server
+    const uptime = server.uptime ? new Date(server.uptime) : new Date()
+    const uptimeStr = `${uptime.toDateString()}  ${uptime.getHours()}:${uptime.getMinutes()}:${uptime.getSeconds()}`
+    let state = server.state || ""
+
+    switch (state) {
+        case STATE_RUNNING:
+            state += " ✔️"
+            break
+        case STATE_RESTARTING:
+            state += " ⌛"
+            break
+        default:
+            state += " ⚠️"
+    }
+    return (
+        <div className="board-wrap">
+            <div className="board">
+                <div className="uptime">
+                    <h2>- Uptime -</h2>
+                    <p>{uptimeStr}</p>
+                </div>
+                <div className="status">
+                    <h2>- Status -</h2>
+                    <p>{state}</p>
+                </div>
+            </div>
+            {props.children}
         </div>
     )
 }
@@ -35,6 +144,7 @@ function FileUploadBtn(props) {
         fetchData({
             method: "POST",
             body: formData,
+            headers: { "Content-Type": undefined },
         }
         ).then(res => res.json()
         ).then(

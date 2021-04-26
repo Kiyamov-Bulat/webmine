@@ -14,7 +14,7 @@ const MOD_ZIP_PATH = "./tmp/" + MOD_ZIP_NAME
 
 type Mod struct {
 	MineModel   `gorm:"embedded"`
-	Name        string    `json:"name"`
+	Name        string    `json:"name" gorm:"unique_index"`
 	Content     []byte    `json:"file_content" sql:"-"`
 	Size        int64     `json:"size"`
 	ModTime     time.Time `json:"mod_time"`
@@ -23,7 +23,6 @@ type Mod struct {
 
 func GetMod(id uint) *Mod {
 	mod := &Mod{}
-	//setItemFromDB("mods", mod, mod.ID)
 	GetDB().Where("id = ?", id).First(mod)
 	mod.SetContent()
 	return mod
@@ -36,6 +35,12 @@ func GetAllMods() []Mod {
 		mod.SetContent()
 	}
 	return mods
+}
+
+func (mod *Mod) Exist() bool {
+	tmp := &Mod{}
+	GetDB().Table("mods").Where(mod).First(tmp)
+	return tmp.IsValid()
 }
 
 func (mod *Mod) SaveFile() {
@@ -72,7 +77,8 @@ func GetAllModNames() []Mod {
 func initModes() {
 	files, err := ioutil.ReadDir(MOD_DIR_PATH)
 	if err != nil {
-		log.Println("It's error", err)
+		log.Println("init modes:", err)
+		return
 	}
 	mods := make([]Mod, len(files))
 	for i, file := range files {
@@ -80,8 +86,7 @@ func initModes() {
 			mods[i].Name = file.Name()
 			mods[i].ModTime = file.ModTime()
 			mods[i].Size = file.Size()
-			GetDB().Where(&mods[i]).First(&mods[i])
-			if !mods[i].IsValid() {
+			if !mods[i].Exist() {
 				mods[i].Create()
 			}
 		}

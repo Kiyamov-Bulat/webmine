@@ -13,7 +13,20 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
+
+var DefaultEnv map[string]string
+
+func init() {
+	env, err := godotenv.Read("default.env")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	DefaultEnv = env
+}
 
 const (
 	ERROR   int = -1
@@ -117,7 +130,6 @@ func RecursiveZip(pathToZip, destinationPath string) error {
 }
 
 func ServeFile(w http.ResponseWriter, r *http.Request, filePath string) {
-	log.Println(strconv.Quote(filepath.Base(filePath)), filePath)
 	w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(filepath.Base(filePath)))
 	w.Header().Set("Content-Type", "application/octet-stream")
 	http.ServeFile(w, r, filePath)

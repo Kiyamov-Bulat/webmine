@@ -1,1 +1,8 @@
 node_modules
+.gitignore
+.dockerignore
+docker_help.txt
+*.exe
+*.out
+webmibe.db
+tasks.txt

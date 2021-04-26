@@ -31,8 +31,11 @@ func UploadMod(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	mod.Content = buf.Bytes()
 	mod.Name = header.Filename
+	if mod.Exist() {
+		mod.Name = "_" + mod.Name
+	}
+	mod.Content = buf.Bytes()
 	mod.ModTime = time.Now()
 	mod.SaveFile()
 	mod.Create()

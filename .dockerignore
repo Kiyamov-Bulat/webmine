@@ -1,1 +1,10 @@
-./frontend/node_modules
+frontend/node_modules
+production.env
+.git
+.gitignore
+.dockerignore
+*.exe
+*.out
+*.db
+tasks.txt
+docker_help.txt

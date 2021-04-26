@@ -3,11 +3,10 @@ package auth
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
-	"os"
 	"strings"
 	"webmine/models"
+	u "webmine/utils"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -49,24 +48,24 @@ func getToken(tokenHeader string) (*models.Token, error) {
 			tk := &models.Token{}
 
 			token, err := jwt.ParseWithClaims(tokenPart, tk, func(token *jwt.Token) (interface{}, error) {
-				return []byte(os.Getenv("AUTH_TOKEN")), nil
+				return []byte(u.DefaultEnv["AUTH_TOKEN"]), nil
 			})
 
 			if err == nil {
 				if token.Valid {
-					log.Printf("User %d", tk.UserId)
+					// log.Printf("User %d", tk.UserId)
 					return tk, nil
 				} else {
-					return nil, errors.New("Token is not valid.")
+					return nil, errors.New("token is not valid")
 				}
 			} else {
-				return nil, errors.New("Malformed authentication token")
+				return nil, errors.New("malformed authentication token")
 			}
 		} else {
-			return nil, errors.New("Invalid/Malformed auth token")
+			return nil, errors.New("invalid/malformed auth token")
 		}
 	}
-	return nil, errors.New("Missing auth token")
+	return nil, errors.New("missing auth token")
 }
 
 func isAllowedReq(reqMethod string, reqPath string) bool {
