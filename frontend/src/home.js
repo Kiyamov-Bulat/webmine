@@ -102,9 +102,20 @@ const STATE_RESTARTING = "Restarting"
 
 function Board(props) {
     const server = props.server
-    const uptime = server.uptime ? new Date(server.uptime) : new Date()
-    const uptimeStr = `${uptime.toDateString()}  ${uptime.getHours()}:${uptime.getMinutes()}:${uptime.getSeconds()}`
-    let state = server.state || ""
+    
+    return (
+        <div className="board-wrap">
+            <div className="board">
+                <UptimeTable uptime={server.uptime}/>
+                <StateTable state={server.state}/>
+            </div>
+            {props.children}
+        </div>
+    )
+}
+
+function StateTable(props) {
+    let state = props.state || ""
 
     switch (state) {
         case STATE_RUNNING:
@@ -117,18 +128,21 @@ function Board(props) {
             state += " ⚠️"
     }
     return (
-        <div className="board-wrap">
-            <div className="board">
-                <div className="uptime">
-                    <h2>- Uptime -</h2>
-                    <p>{uptimeStr}</p>
-                </div>
-                <div className="status">
-                    <h2>- Status -</h2>
-                    <p>{state}</p>
-                </div>
-            </div>
-            {props.children}
+        <div className="status">
+            <h2>- Status -</h2>
+            <p>{state}</p>
+        </div>
+    )
+}
+
+function UptimeTable(props) {
+    const uptime = props.uptime ? new Date(props.uptime) : new Date()
+    const uptimeStr = `${uptime.toDateString()}  ${uptime.getHours()}:${uptime.getMinutes()}:${uptime.getSeconds()}`
+    
+    return (
+        <div className="uptime">
+            <h2>- Uptime -</h2>
+            <p>{uptimeStr}</p>
         </div>
     )
 }
