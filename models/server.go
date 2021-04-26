@@ -37,9 +37,7 @@ var server Server
 func init() {
 	server.ID = os.Getenv("CONTAINER_ID")
 
-	if tmp := os.Getenv("SERVER_IMG_NAME"); tmp != "" {
-		SERVER_IMG_NAME = tmp
-	} else if tmp = u.DefaultEnv["SERVER_IMG_NAME"]; tmp != "" {
+	if tmp := u.Getenv("SERVER_IMG_NAME"); tmp != "" {
 		SERVER_IMG_NAME = tmp
 	}
 }

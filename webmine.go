@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	mwr "webmine/auth"
 	h "webmine/handlers"
@@ -27,10 +26,6 @@ func main() {
 	r.HandleFunc("/api/mods", h.UploadMod).Methods("POST")
 	r.HandleFunc("/", h.IndexHandler).Methods("GET")
 	r.Use(mwr.JwtAuth)
-	port := ":" + os.Getenv("PORT")
-	if port == ":" {
-		port += u.DefaultEnv["PORT"]
-	}
-	log.Println(port)
+	port := ":" + u.Getenv("PORT")
 	log.Fatal(http.ListenAndServe(port, r))
 }

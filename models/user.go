@@ -53,7 +53,7 @@ func (user *User) Login() error {
 	user.Password = ""
 	tk := &Token{UserId: user.ID}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(u.DefaultEnv["AUTH_TOKEN"]))
+	tokenString, _ := token.SignedString([]byte(u.Getenv("AUTH_TOKEN")))
 	user.Token = tokenString
 	return nil
 }
@@ -66,7 +66,7 @@ func (user *User) Create() {
 	user.Password = string(hashedPassword)
 	GetDB().Create(user)
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), &Token{UserId: user.ID})
-	tokenString, _ := token.SignedString([]byte(u.DefaultEnv["AUTH_TOKEN"]))
+	tokenString, _ := token.SignedString([]byte(u.Getenv("AUTH_TOKEN")))
 	user.Token = tokenString
 	user.Password = ""
 }
@@ -94,9 +94,9 @@ func initUsers() {
 	usersJson := os.Getenv("USERS")
 	if usersJson == "" {
 		user := User{
-			Name:      u.DefaultEnv["USER_NAME"],
-			Password:  u.DefaultEnv["USER_PASSWORD"],
-			Email:     u.DefaultEnv["USER_EMAIL"],
+			Name:      u.Getenv("USER_NAME"),
+			Password:  u.Getenv("USER_PASSWORD"),
+			Email:     u.Getenv("USER_EMAIL"),
 			MineModel: MineModel{ID: 1},
 		}
 		if !user.Exist() {

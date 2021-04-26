@@ -48,7 +48,7 @@ func getToken(tokenHeader string) (*models.Token, error) {
 			tk := &models.Token{}
 
 			token, err := jwt.ParseWithClaims(tokenPart, tk, func(token *jwt.Token) (interface{}, error) {
-				return []byte(u.DefaultEnv["AUTH_TOKEN"]), nil
+				return []byte(u.Getenv("AUTH_TOKEN")), nil
 			})
 
 			if err == nil {

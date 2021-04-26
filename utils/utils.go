@@ -34,6 +34,14 @@ const (
 	SUCCESS int = 1
 )
 
+func Getenv(key string) string {
+	env := os.Getenv(key)
+	if env == "" {
+		env = DefaultEnv[key]
+	}
+	return env
+}
+
 func Message(status int, message string) map[string]interface{} {
 	return map[string]interface{}{"status": status, "message": message}
 }
