@@ -1,6 +1,5 @@
 import React from "react"
-import { ContentHandler, ControlBtn, CustomImage, DownloadableLink, useResponse } from "./base"
-import { getUserFromCookie } from "./user"
+import { ContentHandler, ControlBtn, CustomImage, DownloadableLink, fetchDataWithToken, useResponse } from "./base"
 
 export function ModList(props) {
     const [content, ...state] = useResponse("/api/mods")
@@ -41,13 +40,7 @@ function DeleteBtn(props) {
 	function onClick(event) {
 		event.preventDefault()
 		if (confirm('Вы уверены что хотите удалить файл?')) {
-			fetch(path, {
-				headers: {
-					'Content-Type': 'application/json',
-					'X-Session-Token': 'Bearer ' + getUserFromCookie().token,
-				},
-				method: "POST",
-			})
+			fetchDataWithToken(path, {method: "POST"})
 			window.location.reload()
 		}
 	}
