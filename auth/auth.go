@@ -42,7 +42,7 @@ var JwtAuth = func(next http.Handler) http.Handler {
 
 func getToken(tokenHeader string) (*models.Token, error) {
 	if tokenHeader != "" {
-		splitted := strings.Split(tokenHeader, " ") //Токен обычно поставляется в формате `Bearer {token-body}`, мы проверяем, соответствует ли полученный токен этому требованию
+		splitted := strings.Split(tokenHeader, " ")
 		if len(splitted) == 2 {
 			tokenPart := splitted[1]
 			tk := &models.Token{}

@@ -1,11 +1,3 @@
-const ANONYMOUS = 0, LOGGED = 1
-
-// User's group
-const USER      = 0, 
-      ADMIN     = 1,
-	    MODERATOR = 2,
-	    EDITOR    = 3
-
 export function User(userObj) {
     userObj.isLogged = function() {
         return typeof userObj.id === 'number' && userObj.id != 0
@@ -42,7 +34,7 @@ function setCookie(name, value, options = {}) {
 
     options = {
       path: '/',
-      ...options // при необходимости добавьте другие значения по умолчанию
+      ...options
     };
   
     if (options.expires instanceof Date) {

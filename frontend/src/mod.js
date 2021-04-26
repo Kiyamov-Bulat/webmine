@@ -39,7 +39,7 @@ function DeleteBtn(props) {
     const fullClassName = "delete-btn btn " + (className || "")
 	function onClick(event) {
 		event.preventDefault()
-		if (confirm('Вы уверены что хотите удалить файл?')) {
+		if (confirm('Are you sure you want to delete the file?')) {
 			fetchDataWithToken(path, {method: "POST"})
 			window.location.reload()
 		}
