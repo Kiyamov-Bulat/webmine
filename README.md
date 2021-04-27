@@ -1,4 +1,4 @@
-# Webmine
+# Webmine [alfa 0.1]
 #### Webmine - is simplest web-manager for _Minecraft_-forge-server running on docker-container.
 The main task of Webmine is to make uploading mods to a forge minecraft-server very easy, without any tools other than a browser!
 
