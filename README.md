@@ -16,16 +16,6 @@ touch docker-compose.yml
 ... Copy example of docker file to docker-compose.yml...
 sudo docker-compose up
 ```
-
-#### For windows
-_alt + R_ to open cmd
-```cmd
-git clone git@github.com:Kiyamov-Bulat/webmine.git
-cd webmine
-type NUL > docker-compose.yml
-... Copy example of docker file to docker-compose.yml...
-docker-compose up
-```
 _Example of docker-compose.yml file_
 ```yaml
 version: "3.9"
