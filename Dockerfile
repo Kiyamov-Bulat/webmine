@@ -17,7 +17,7 @@ WORKDIR $GOPATH/src/webmine
 COPY . .
 
 WORKDIR $GOPATH/src/webmine/frontend
-RUN npm ci --only=production && npm run-script build
+RUN npm install && npm run-script build
 
 WORKDIR $GOPATH/src/webmine
 RUN go mod tidy && go build .
